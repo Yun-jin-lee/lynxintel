@@ -6,26 +6,31 @@ Build a lightweight CLI-based OSINT probe engine that supports:
 - centralized keyword search through Jackett
 - BitTorrent metadata-oriented probing through infohash and magnet inputs
 
-## MVP scope
-The first MVP includes:
-- CLI argument parsing
-- input validation for keyword, infohash, and magnet
-- adapter routing
-- text-based reporting
-- adapter skeletons
-- basic unit tests
+The main design goal is to reduce dependence on opaque tooling by using a modular, inspectable, CLI-first codebase.
 
-The MVP does not yet include:
+## Current MVP scope
+The current MVP includes:
+- CLI argument parsing
+- validation for keyword, infohash, and magnet input
+- routing logic
+- adapter skeletons
+- text-based reporting
+- local configuration through `.env`
+- unit tests for parser, validators, and router
+
+The current MVP does not yet include:
 - reverse image search
-- DOCX/PPTX reporting
+- DOCX or PPTX reporting
 - AI analysis
 - I2P support
 - full qBittorrent replacement
 - advanced DHT crawling
+- live Jackett production search with a real API key
+- live Tor/Lynx browsing integration
 
 ## High-level modules
 
-### CLI
+### CLI layer
 Responsible for parsing user input and dispatching commands.
 
 Files:
@@ -33,8 +38,8 @@ Files:
 - `app/cli/parser.py`
 - `app/cli/commands.py`
 
-### Core
-Responsible for routing, models, normalization, and deduplication.
+### Core layer
+Responsible for routing and shared logic.
 
 Files:
 - `app/core/router.py`
@@ -42,16 +47,16 @@ Files:
 - `app/core/normalizer.py`
 - `app/core/deduplicator.py`
 
-### Adapters
+### Adapter layer
 Responsible for interacting with external tools and services.
 
 Files:
-- `app/adapters/tor_lynx_client.py`
-- `app/adapters/jackett_client.py`
-- `app/adapters/qbittorrent_client.py`
 - `app/adapters/bittorrent_probe.py`
+- `app/adapters/jackett_client.py`
+- `app/adapters/tor_lynx_client.py`
+- `app/adapters/qbittorrent_client.py`
 
-### Reporting
+### Reporting layer
 Responsible for presenting results to the operator.
 
 Files:
@@ -59,9 +64,17 @@ Files:
 - `app/reporting/json_reporter.py`
 - `app/reporting/docx_reporter.py`
 
+### Configuration layer
+Responsible for loading local runtime configuration from environment variables.
+
+Files:
+- `app/config.py`
+- `.env.example`
+- `.env`
+
 ## Current execution flow
 
-### Keyword search
+### Keyword search flow
 User input  
 -> CLI parser  
 -> search command  
@@ -70,7 +83,7 @@ User input
 -> Jackett adapter  
 -> text reporter
 
-### Infohash probe
+### Infohash probe flow
 User input  
 -> CLI parser  
 -> probe command  
@@ -79,7 +92,7 @@ User input
 -> BitTorrent probe adapter  
 -> text reporter
 
-### Magnet probe
+### Magnet probe flow
 User input  
 -> CLI parser  
 -> probe command  
@@ -91,11 +104,11 @@ User input
 
 ## Design principles
 - keep the engine lightweight
-- keep network adapters modular
-- separate validation, routing, and adapter execution
-- prefer metadata-only workflows where possible
-- keep reporting independent from data collection
-- make the codebase easy to test
+- keep adapters modular
+- separate validation, routing, execution, and reporting
+- prefer metadata-oriented workflows where possible
+- keep secrets out of the repository
+- make the code easy to test and extend
 
 ## Current status
 Implemented:
@@ -105,10 +118,13 @@ Implemented:
 - router
 - adapter skeletons
 - text reporting
+- dotenv-based configuration loading
 - unit tests for parser, validators, and router
 
 Planned next:
-- real Jackett integration
-- Tor/Lynx integration
-- metadata probe implementation
-- result normalization and deduplication
+- real Jackett integration with live API key
+- Tor/Lynx adapter preparation
+- BitTorrent metadata probing implementation
+- result normalization
+- duplicate handling
+- reporting expansion
