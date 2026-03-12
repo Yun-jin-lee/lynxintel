@@ -45,3 +45,28 @@ def test_extract_btih_from_invalid_magnet_returns_none():
     magnet = "magnet:?dn=test"
     result = extract_btih_from_magnet(magnet)
     assert result is None
+    
+
+from app.utils.validators import is_onion_url, is_valid_tor_target
+
+
+def test_valid_tor_target_returns_true_for_http_url():
+    assert is_valid_tor_target("http://example.com") is True
+
+
+def test_valid_tor_target_returns_true_for_https_onion_url():
+    assert is_valid_tor_target(
+        "http://exampleexample.onion"
+    ) is True
+
+
+def test_invalid_tor_target_returns_false_for_empty_value():
+    assert is_valid_tor_target("   ") is False
+
+
+def test_is_onion_url_returns_true_for_onion_target():
+    assert is_onion_url("http://aaaaaaaaaaaaaaaa.onion") is True
+
+
+def test_is_onion_url_returns_false_for_normal_url():
+    assert is_onion_url("http://example.com") is False
