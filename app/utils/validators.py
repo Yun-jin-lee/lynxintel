@@ -43,3 +43,31 @@ def extract_btih_from_magnet(magnet_uri: str) -> str | None:
         return None
 
     return match.group(1)
+
+
+ONION_RE = re.compile(r"^https?://[a-z2-7]{16,56}\.onion(?:/.*)?$", re.IGNORECASE)
+HTTP_URL_RE = re.compile(r"^https?://.+", re.IGNORECASE)
+
+
+def is_valid_tor_target(value: str) -> bool:
+    """
+    Accept basic HTTP(S) targets, including .onion URLs.
+    """
+    if not isinstance(value, str):
+        return False
+
+    value = value.strip()
+    if not value:
+        return False
+
+    return HTTP_URL_RE.fullmatch(value) is not None
+
+
+def is_onion_url(value: str) -> bool:
+    """
+    Check whether the given URL is a .onion target.
+    """
+    if not isinstance(value, str):
+        return False
+
+    return ONION_RE.fullmatch(value.strip()) is not None
