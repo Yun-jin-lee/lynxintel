@@ -37,3 +37,14 @@ def print_adapter_result(result: dict) -> None:
     if result.get("prepared_command"):
         print("[INFO] Prepared command:")
         print(" ".join(result.get("prepared_command")))
+    
+    if result.get("metadata_only") is not None:
+        print(f"[INFO] Metadata only: {result.get('metadata_only')}")
+
+    if result.get("source"):
+        print(f"[INFO] Source: {result.get('source')}")
+
+    if result.get("files"):
+        print("[INFO] Files:")
+        for file_entry in result.get("files", []):
+            print(f" - {file_entry}")
