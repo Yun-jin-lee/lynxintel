@@ -48,6 +48,20 @@ def print_adapter_result(result: dict) -> None:
     if result.get("is_onion") is not None:
         print(f"[INFO] Onion target: {result.get('is_onion')}")
 
+    if result.get("proxy"):
+        print(f"[INFO] Proxy: {result.get('proxy')}")
+
     if result.get("prepared_command"):
         print("[INFO] Prepared command:")
         print(" ".join(result.get("prepared_command")))
+
+    if result.get("returncode") is not None:
+        print(f"[INFO] Return code: {result.get('returncode')}")
+
+    if result.get("stdout_preview"):
+        print("[INFO] STDOUT preview:")
+        print(result.get("stdout_preview"))
+
+    if result.get("stderr_preview"):
+        print("[INFO] STDERR preview:")
+        print(result.get("stderr_preview"))
