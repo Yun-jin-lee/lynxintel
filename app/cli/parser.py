@@ -58,7 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
     # browse
     browse_parser = subparsers.add_parser(
         "browse",
-        help="Prepare a text-based browse workflow for a target URL.",
+        help="Prepare or execute a text-based browse workflow for a target URL.",
     )
     browse_parser.add_argument(
         "--target",
@@ -70,6 +70,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Show the prepared Lynx/Tor command without executing it.",
+    )
+    browse_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the browse result as JSON.",
+    )
+    browse_parser.add_argument(
+        "--output",
+        type=str,
+        help="Optional path to save the browse result as a JSON file.",
     )
 
     return parser
