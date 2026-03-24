@@ -12,7 +12,6 @@ def build_lynx_command(target: str) -> list[str]:
 
     return [
         lynx_binary,
-        "-cfg=NONE",
         "-accept_all_cookies",
         "-dump",
         target,
