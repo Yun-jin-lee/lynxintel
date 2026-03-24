@@ -11,6 +11,8 @@ def test_run_infohash_probe_returns_expected_structure():
     assert result["btih"] == infohash
     assert result["metadata_only"] is True
     assert result["source"] == "local-placeholder"
+    assert isinstance(result["files"], list)
+    assert len(result["files"]) == 2
 
 
 def test_run_magnet_probe_returns_expected_structure():
@@ -24,3 +26,5 @@ def test_run_magnet_probe_returns_expected_structure():
     assert result["btih"] == btih
     assert result["metadata_only"] is True
     assert result["source"] == "local-placeholder"
+    assert isinstance(result["files"], list)
+    assert len(result["files"]) == 2
