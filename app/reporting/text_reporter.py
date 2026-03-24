@@ -54,6 +54,9 @@ def print_adapter_result(result: dict) -> None:
     if result.get("use_tor") is not None:
         print(f"[INFO] Use Tor: {result.get('use_tor')}")
 
+    if result.get("tor_reachable") is not None:
+        print(f"[INFO] Tor reachable: {result.get('tor_reachable')}")
+
     if result.get("prepared_command"):
         print("[INFO] Prepared command:")
         print(" ".join(result.get("prepared_command")))

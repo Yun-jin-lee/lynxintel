@@ -17,6 +17,7 @@ def test_run_tor_text_browse_returns_expected_shape_in_dry_run():
     assert result["adapter"] == "tor_lynx_client"
     assert "prepared_command" in result
     assert result["dry_run"] is True
+    assert "tor_reachable" in result
 
 
 def test_run_tor_text_browse_execute_mode_returns_shape():
@@ -26,3 +27,4 @@ def test_run_tor_text_browse_execute_mode_returns_shape():
     assert result["adapter"] == "tor_lynx_client"
     assert "prepared_command" in result
     assert result["dry_run"] is False
+    assert "tor_reachable" in result
