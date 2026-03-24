@@ -26,6 +26,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         help="Magnet URI containing a btih value.",
     )
+    probe_parser.add_argument(
+        "--filetype",
+        type=str,
+        choices=["pdf", "image", "text", "archive"],
+        help="Optional file type filter for probe results.",
+    )
 
     # search
     search_parser = subparsers.add_parser(
