@@ -24,7 +24,7 @@ def run_probe_command(args) -> int:
             reason=decision.reason,
         )
 
-        result = run_infohash_probe(args.infohash)
+        result = run_infohash_probe(args.infohash, filetype=args.filetype)
         print_adapter_result(result)
         return 0
 
@@ -42,7 +42,7 @@ def run_probe_command(args) -> int:
             reason=decision.reason,
         )
 
-        result = run_magnet_probe(args.magnet, btih=btih)
+        result = run_magnet_probe(args.magnet, btih=btih, filetype=args.filetype)
         print_adapter_result(result)
         return 0
 
