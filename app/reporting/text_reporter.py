@@ -83,3 +83,10 @@ def print_adapter_result(result: dict) -> None:
 
     if result.get("filters"):
         print(f"[INFO] Filters: {result.get('filters')}")
+
+    if result.get("comparisons"):
+        print("[INFO] Provider comparison:")
+        for provider_name, provider_data in result["comparisons"].items():
+            print(f"--- {provider_name.upper()} ---")
+            print(f"Query: {provider_data.get('query')}")
+            print(f"URL: {provider_data.get('manual_search_url')}")

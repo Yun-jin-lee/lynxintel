@@ -144,4 +144,59 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional path to save the result as a JSON file.",
     )
 
+    # comparesearch
+    compare_parser = subparsers.add_parser(
+        "comparesearch",
+        help="Compare generated search queries across Google, Yandex, and Baidu.",
+    )
+    compare_parser.add_argument(
+        "--keyword",
+        type=str,
+        required=True,
+        help="Main search keyword.",
+    )
+    compare_parser.add_argument(
+        "--use-case",
+        type=str,
+        choices=["apk", "documents", "images", "leaks"],
+        help="Optional predefined search use case.",
+    )
+    compare_parser.add_argument(
+        "--site",
+        type=str,
+        help="Optional site/domain restriction.",
+    )
+    compare_parser.add_argument(
+        "--filetype",
+        type=str,
+        help="Optional file type restriction.",
+    )
+    compare_parser.add_argument(
+        "--exact-phrase",
+        type=str,
+        help="Optional exact phrase.",
+    )
+    compare_parser.add_argument(
+        "--exclude",
+        nargs="*",
+        default=[],
+        help="Optional terms to exclude.",
+    )
+    compare_parser.add_argument(
+        "--add",
+        nargs="*",
+        default=[],
+        help="Optional additional terms to include.",
+    )
+    compare_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the comparison result as JSON.",
+    )
+    compare_parser.add_argument(
+        "--output",
+        type=str,
+        help="Optional path to save the comparison result as a JSON file.",
+    )
+
     return parser

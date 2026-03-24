@@ -4,6 +4,7 @@ from app.adapters.google_search_client import run_google_search
 from app.adapters.jackett_client import run_keyword_search
 from app.adapters.tor_lynx_client import run_tor_text_browse
 from app.adapters.yandex_search_client import run_yandex_search
+from app.core.comparison_builder import build_provider_comparison
 from app.core.router import (
     route_browse_input,
     route_probe_input,
@@ -150,6 +151,38 @@ def run_websearch_command(args) -> int:
         print(f"[ERROR] Unsupported provider: {provider}")
         return 1
 
+    print_adapter_result(result)
+    _handle_optional_json_output(result, args)
+    return 0
+
+
+def run_comparesearch_command(args) -> int:
+    keyword = (args.keyword or "").strip()
+
+    if not keyword:
+        print("[ERROR] Compare search keyword cannot be empty.")
+        return 1
+
+    profile = apply_use_case(keyword, args.use_case)
+
+    request = SearchRequest(
+        provider="comparison",
+        keyword=profile["keyword"],
+        use_case=args.use_case,
+        site=args.site or profile.get("site"),
+        filetype=args.filetype or profile.get("filetype"),
+        exact_phrase=args.exact_phrase or profile.get("exact_phrase"),
+        exclude_terms=args.exclude or profile.get("exclude_terms", []),
+        additional_terms=(args.add or []) + profile.get("additional_terms", []),
+    )
+
+    print_route_decision(
+        input_type="comparesearch",
+        adapter_name="comparison_builder",
+        reason="Cross-provider query comparison was selected.",
+    )
+
+    result = build_provider_comparison(request)
     print_adapter_result(result)
     _handle_optional_json_output(result, args)
     return 0

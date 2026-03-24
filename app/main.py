@@ -1,5 +1,6 @@
 from app.cli.commands import (
     run_browse_command,
+    run_comparesearch_command,
     run_probe_command,
     run_search_command,
     run_websearch_command,
@@ -22,6 +23,9 @@ def main() -> int:
 
     if args.command == "websearch":
         return run_websearch_command(args)
+
+    if args.command == "comparesearch":
+        return run_comparesearch_command(args)
 
     parser.print_help()
     return 1
