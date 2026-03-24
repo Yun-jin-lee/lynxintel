@@ -28,3 +28,20 @@ def test_run_magnet_probe_returns_expected_structure():
     assert result["source"] == "local-placeholder"
     assert isinstance(result["files"], list)
     assert len(result["files"]) == 2
+
+
+def test_run_infohash_probe_filters_pdf_files():
+    infohash = "0123456789abcdef0123456789abcdef01234567"
+    result = run_infohash_probe(infohash, filetype="pdf")
+
+    assert len(result["files"]) == 1
+    assert result["files"][0]["type"] == "pdf"
+
+
+def test_run_magnet_probe_filters_archive_files():
+    magnet = "magnet:?xt=urn:btih:0123456789ABCDEF0123456789ABCDEF01234567&dn=test"
+    btih = "0123456789ABCDEF0123456789ABCDEF01234567"
+    result = run_magnet_probe(magnet, btih=btih, filetype="archive")
+
+    assert len(result["files"]) == 1
+    assert result["files"][0]["type"] == "archive"
