@@ -13,6 +13,7 @@ def test_run_infohash_probe_returns_expected_structure():
     assert result["source"] == "local-placeholder"
     assert isinstance(result["files"], list)
     assert len(result["files"]) == 2
+    assert result["extra"]["deduplicated"] is True
 
 
 def test_run_magnet_probe_returns_expected_structure():
@@ -28,6 +29,7 @@ def test_run_magnet_probe_returns_expected_structure():
     assert result["source"] == "local-placeholder"
     assert isinstance(result["files"], list)
     assert len(result["files"]) == 2
+    assert result["extra"]["deduplicated"] is True
 
 
 def test_run_infohash_probe_filters_pdf_files():
