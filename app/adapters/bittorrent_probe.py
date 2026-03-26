@@ -26,12 +26,49 @@ def _detect_type_from_path(path: str) -> str:
 
     if path_lower.endswith(".pdf"):
         return "pdf"
-    if path_lower.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")):
-        return "image"
+
+    if path_lower.endswith((".doc", ".docx", ".odt", ".rtf")):
+        return "word"
+
+    if path_lower.endswith((".ppt", ".pptx", ".odp")):
+        return "powerpoint"
+
+    if path_lower.endswith((".xls", ".xlsx", ".ods")):
+        return "excel"
+
     if path_lower.endswith((".txt", ".md", ".log")):
         return "text"
-    if path_lower.endswith((".zip", ".rar", ".7z", ".tar", ".gz")):
+
+    if path_lower.endswith((".csv",)):
+        return "csv"
+
+    if path_lower.endswith((".json",)):
+        return "json"
+
+    if path_lower.endswith((".xml",)):
+        return "xml"
+
+    if path_lower.endswith((".html", ".htm")):
+        return "html"
+
+    if path_lower.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg")):
+        return "image"
+
+    if path_lower.endswith((".zip", ".rar", ".7z", ".tar", ".gz", ".bz2")):
         return "archive"
+
+    if path_lower.endswith((".iso", ".img")):
+        return "disk_image"
+
+    if path_lower.endswith((".exe", ".msi", ".dll")):
+        return "executable"
+
+    if path_lower.endswith(".apk"):
+        return "apk"
+
+    if path_lower.endswith((".ps1", ".bat", ".cmd", ".sh", ".py", ".js")):
+        return "script"
+
     return "other"
 
 
