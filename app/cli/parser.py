@@ -12,7 +12,7 @@ def build_parser() -> argparse.ArgumentParser:
     # probe
     probe_parser = subparsers.add_parser(
         "probe",
-        help="Probe a BitTorrent target such as an infohash or magnet URI.",
+        help="Probe a BitTorrent target such as an infohash, magnet URI, or .torrent file.",
     )
 
     probe_group = probe_parser.add_mutually_exclusive_group(required=True)
@@ -26,10 +26,16 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         help="Magnet URI containing a btih value.",
     )
+    probe_group.add_argument(
+        "--torrent-file",
+        type=str,
+        help="Path to a local .torrent file.",
+    )
+
     probe_parser.add_argument(
         "--filetype",
         type=str,
-        choices=["pdf", "image", "text", "archive"],
+        choices=["pdf", "image", "text", "archive", "other"],
         help="Optional file type filter for probe results.",
     )
     probe_parser.add_argument(
@@ -106,97 +112,31 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["apk", "documents", "images", "leaks"],
         help="Optional predefined search use case.",
     )
-    websearch_parser.add_argument(
-        "--site",
-        type=str,
-        help="Optional site/domain restriction.",
-    )
-    websearch_parser.add_argument(
-        "--filetype",
-        type=str,
-        help="Optional file type restriction.",
-    )
-    websearch_parser.add_argument(
-        "--exact-phrase",
-        type=str,
-        help="Optional exact phrase.",
-    )
-    websearch_parser.add_argument(
-        "--exclude",
-        nargs="*",
-        default=[],
-        help="Optional terms to exclude.",
-    )
-    websearch_parser.add_argument(
-        "--add",
-        nargs="*",
-        default=[],
-        help="Optional additional terms to include.",
-    )
-    websearch_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Print the provider result as JSON.",
-    )
-    websearch_parser.add_argument(
-        "--output",
-        type=str,
-        help="Optional path to save the result as a JSON file.",
-    )
+    websearch_parser.add_argument("--site", type=str)
+    websearch_parser.add_argument("--filetype", type=str)
+    websearch_parser.add_argument("--exact-phrase", type=str)
+    websearch_parser.add_argument("--exclude", nargs="*", default=[])
+    websearch_parser.add_argument("--add", nargs="*", default=[])
+    websearch_parser.add_argument("--json", action="store_true")
+    websearch_parser.add_argument("--output", type=str)
 
     # comparesearch
     compare_parser = subparsers.add_parser(
         "comparesearch",
         help="Compare generated search queries across Google, Yandex, and Baidu.",
     )
-    compare_parser.add_argument(
-        "--keyword",
-        type=str,
-        required=True,
-        help="Main search keyword.",
-    )
+    compare_parser.add_argument("--keyword", type=str, required=True)
     compare_parser.add_argument(
         "--use-case",
         type=str,
         choices=["apk", "documents", "images", "leaks"],
-        help="Optional predefined search use case.",
     )
-    compare_parser.add_argument(
-        "--site",
-        type=str,
-        help="Optional site/domain restriction.",
-    )
-    compare_parser.add_argument(
-        "--filetype",
-        type=str,
-        help="Optional file type restriction.",
-    )
-    compare_parser.add_argument(
-        "--exact-phrase",
-        type=str,
-        help="Optional exact phrase.",
-    )
-    compare_parser.add_argument(
-        "--exclude",
-        nargs="*",
-        default=[],
-        help="Optional terms to exclude.",
-    )
-    compare_parser.add_argument(
-        "--add",
-        nargs="*",
-        default=[],
-        help="Optional additional terms to include.",
-    )
-    compare_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Print the comparison result as JSON.",
-    )
-    compare_parser.add_argument(
-        "--output",
-        type=str,
-        help="Optional path to save the comparison result as a JSON file.",
-    )
+    compare_parser.add_argument("--site", type=str)
+    compare_parser.add_argument("--filetype", type=str)
+    compare_parser.add_argument("--exact-phrase", type=str)
+    compare_parser.add_argument("--exclude", nargs="*", default=[])
+    compare_parser.add_argument("--add", nargs="*", default=[])
+    compare_parser.add_argument("--json", action="store_true")
+    compare_parser.add_argument("--output", type=str)
 
     return parser

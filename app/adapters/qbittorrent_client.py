@@ -1,3 +1,4 @@
+import os
 import time
 from typing import Any
 
@@ -41,6 +42,28 @@ class QBittorrentClient:
         )
         response.raise_for_status()
 
+    def add_torrent_file(self, torrent_file_path: str, paused: bool = True) -> None:
+        if not os.path.exists(torrent_file_path):
+            raise FileNotFoundError(f".torrent file not found: {torrent_file_path}")
+
+        url = f"{self.base_url}/api/v2/torrents/add"
+        with open(torrent_file_path, "rb") as torrent_file:
+            response = self.session.post(
+                url,
+                data={
+                    "paused": "true" if paused else "false",
+                },
+                files={
+                    "torrents": (
+                        os.path.basename(torrent_file_path),
+                        torrent_file,
+                        "application/x-bittorrent",
+                    )
+                },
+                timeout=30,
+            )
+        response.raise_for_status()
+
     def list_torrents(self) -> list[dict[str, Any]]:
         url = f"{self.base_url}/api/v2/torrents/info"
         response = self.session.get(url, timeout=20)
@@ -78,6 +101,24 @@ class QBittorrentClient:
             for torrent in torrents:
                 torrent_hash = str(torrent.get("hash", "")).lower()
                 if torrent_hash == btih_lower:
+                    return torrent
+            time.sleep(delay)
+
+        return None
+
+    def find_torrent_by_name(
+        self,
+        name_fragment: str,
+        retries: int = 10,
+        delay: float = 1.5,
+    ) -> dict[str, Any] | None:
+        needle = name_fragment.lower()
+
+        for _ in range(retries):
+            torrents = self.list_torrents()
+            for torrent in torrents:
+                torrent_name = str(torrent.get("name", "")).lower()
+                if needle and needle in torrent_name:
                     return torrent
             time.sleep(delay)
 

@@ -1,3 +1,5 @@
+import os
+
 from app.adapters.qbittorrent_client import QBittorrentClient
 from app.core.deduplicator import deduplicate_files
 from app.core.models import ProbeResult
@@ -51,13 +53,51 @@ def _normalize_qbt_files(qbt_files: list[dict]) -> list[dict]:
     return normalized
 
 
+def _build_result(
+    *,
+    status: str,
+    input_type: str,
+    value: str,
+    message: str,
+    btih: str | None,
+    files: list[dict],
+    filetype: str | None,
+    torrent_hash: str | None = None,
+    torrent_name: str | None = None,
+) -> dict:
+    tagged_files = _tag_files(deduplicate_files(_filter_files(files, filetype)))
+    total_score = _calculate_total_score(tagged_files)
+
+    result = ProbeResult(
+        status=status,
+        input_type=input_type,
+        value=value,
+        adapter="bittorrent_probe",
+        message=message,
+        btih=btih,
+        metadata_only=True,
+        files=tagged_files,
+        source="live-qbittorrent",
+        extra={
+            "filetype_filter": filetype,
+            "deduplicated": True,
+            "original_file_count": len(files),
+            "final_file_count": len(tagged_files),
+            "total_score": total_score,
+            "torrent_hash": torrent_hash,
+            "torrent_name": torrent_name,
+        },
+    )
+    return normalize_probe_result(result)
+
+
 def run_infohash_probe(infohash: str, filetype: str | None = None) -> dict:
     result = ProbeResult(
         status="error",
         input_type="infohash",
         value=infohash,
         adapter="bittorrent_probe",
-        message="Direct infohash metadata probing is not implemented yet. Use magnet-based live probing.",
+        message="Direct infohash metadata probing is not implemented yet. Use magnet-based or .torrent-based live probing.",
         btih=infohash,
         metadata_only=True,
         files=[],
@@ -120,32 +160,18 @@ def run_magnet_probe(magnet: str, btih: str | None = None, filetype: str | None 
         torrent_hash = torrent.get("hash")
         qbt_files = client.list_files(torrent_hash)
         normalized_files = _normalize_qbt_files(qbt_files)
-        filtered_files = _filter_files(normalized_files, filetype)
-        deduplicated_files = deduplicate_files(filtered_files)
-        tagged_files = _tag_files(deduplicated_files)
-        total_score = _calculate_total_score(tagged_files)
 
-        result = ProbeResult(
+        return _build_result(
             status="ok",
             input_type="magnet",
             value=magnet,
-            adapter="bittorrent_probe",
             message="Live magnet metadata probe completed via qBittorrent.",
             btih=btih,
-            metadata_only=True,
-            files=tagged_files,
-            source="live-qbittorrent",
-            extra={
-                "filetype_filter": filetype,
-                "deduplicated": True,
-                "original_file_count": len(normalized_files),
-                "final_file_count": len(tagged_files),
-                "total_score": total_score,
-                "torrent_hash": torrent_hash,
-                "torrent_name": torrent.get("name"),
-            },
+            files=normalized_files,
+            filetype=filetype,
+            torrent_hash=torrent_hash,
+            torrent_name=torrent.get("name"),
         )
-        return normalize_probe_result(result)
 
     except Exception as exc:
         result = ProbeResult(
@@ -155,6 +181,90 @@ def run_magnet_probe(magnet: str, btih: str | None = None, filetype: str | None 
             adapter="bittorrent_probe",
             message=f"Live magnet probe failed: {exc}",
             btih=btih,
+            metadata_only=True,
+            files=[],
+            source="live-qbittorrent",
+            extra={
+                "filetype_filter": filetype,
+                "deduplicated": False,
+                "original_file_count": 0,
+                "final_file_count": 0,
+                "total_score": 0,
+            },
+        )
+        return normalize_probe_result(result)
+
+
+def run_torrent_file_probe(torrent_file_path: str, filetype: str | None = None) -> dict:
+    if not os.path.exists(torrent_file_path):
+        result = ProbeResult(
+            status="error",
+            input_type="torrent_file",
+            value=torrent_file_path,
+            adapter="bittorrent_probe",
+            message=f".torrent file not found: {torrent_file_path}",
+            btih=None,
+            metadata_only=True,
+            files=[],
+            source="live-qbittorrent",
+            extra={},
+        )
+        return normalize_probe_result(result)
+
+    client = QBittorrentClient()
+
+    try:
+        client.login()
+        client.add_torrent_file(torrent_file_path, paused=True)
+
+        base_name = os.path.splitext(os.path.basename(torrent_file_path))[0]
+        torrent = client.find_torrent_by_name(base_name)
+
+        if not torrent:
+            result = ProbeResult(
+                status="warning",
+                input_type="torrent_file",
+                value=torrent_file_path,
+                adapter="bittorrent_probe",
+                message="Torrent file was added, but qBittorrent metadata was not available yet.",
+                btih=None,
+                metadata_only=True,
+                files=[],
+                source="live-qbittorrent",
+                extra={
+                    "filetype_filter": filetype,
+                    "deduplicated": False,
+                    "original_file_count": 0,
+                    "final_file_count": 0,
+                    "total_score": 0,
+                },
+            )
+            return normalize_probe_result(result)
+
+        torrent_hash = torrent.get("hash")
+        qbt_files = client.list_files(torrent_hash)
+        normalized_files = _normalize_qbt_files(qbt_files)
+
+        return _build_result(
+            status="ok",
+            input_type="torrent_file",
+            value=torrent_file_path,
+            message="Live .torrent metadata probe completed via qBittorrent.",
+            btih=torrent_hash,
+            files=normalized_files,
+            filetype=filetype,
+            torrent_hash=torrent_hash,
+            torrent_name=torrent.get("name"),
+        )
+
+    except Exception as exc:
+        result = ProbeResult(
+            status="error",
+            input_type="torrent_file",
+            value=torrent_file_path,
+            adapter="bittorrent_probe",
+            message=f"Live .torrent probe failed: {exc}",
+            btih=None,
             metadata_only=True,
             files=[],
             source="live-qbittorrent",

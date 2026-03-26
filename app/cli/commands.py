@@ -1,5 +1,9 @@
 from app.adapters.baidu_search_client import run_baidu_search
-from app.adapters.bittorrent_probe import run_infohash_probe, run_magnet_probe
+from app.adapters.bittorrent_probe import (
+    run_infohash_probe,
+    run_magnet_probe,
+    run_torrent_file_probe,
+)
 from app.adapters.google_search_client import run_google_search
 from app.adapters.jackett_client import run_keyword_search
 from app.adapters.tor_lynx_client import run_tor_text_browse
@@ -66,6 +70,18 @@ def run_probe_command(args) -> int:
         )
 
         result = run_magnet_probe(args.magnet, btih=btih, filetype=args.filetype)
+        print_adapter_result(result)
+        _handle_optional_json_output(result, args)
+        return 0
+
+    if args.torrent_file:
+        print_route_decision(
+            input_type="torrent_file",
+            adapter_name="bittorrent_probe",
+            reason="Local .torrent file should be handled by the BitTorrent metadata probe adapter.",
+        )
+
+        result = run_torrent_file_probe(args.torrent_file, filetype=args.filetype)
         print_adapter_result(result)
         _handle_optional_json_output(result, args)
         return 0
