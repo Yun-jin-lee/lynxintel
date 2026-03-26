@@ -65,7 +65,12 @@ class QBittorrentClient:
         )
         response.raise_for_status()
 
-    def find_torrent_by_btih(self, btih: str, retries: int = 10, delay: float = 1.5) -> dict[str, Any] | None:
+    def find_torrent_by_btih(
+        self,
+        btih: str,
+        retries: int = 10,
+        delay: float = 1.5,
+    ) -> dict[str, Any] | None:
         btih_lower = btih.lower()
 
         for _ in range(retries):
