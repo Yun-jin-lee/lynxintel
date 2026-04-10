@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 
-
 @dataclass
 class SearchRequest:
     provider: str
@@ -25,3 +24,5 @@ class SearchResult:
     manual_search_url: str
     message: str
     filters: dict = field(default_factory=dict)
+    results: list | None = None
+    raw: dict | None = None

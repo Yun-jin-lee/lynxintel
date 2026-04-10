@@ -98,3 +98,17 @@ def print_adapter_result(result: dict) -> None:
             print(f"--- {provider_name.upper()} ---")
             print(f"Query: {provider_data.get('query')}")
             print(f"URL: {provider_data.get('manual_search_url')}")
+    
+    if result.get("results"):
+        print("[INFO] Search Results:")
+        for i, item in enumerate(result["results"][:10], 1):
+            title = item.get("title")
+            link = item.get("link")
+            snippet = item.get("snippet")
+
+            print(f"{i}. {title}")
+            if link:
+                print(f"   {link}")
+            if snippet:
+                print(f"   {snippet}")
+            print()
