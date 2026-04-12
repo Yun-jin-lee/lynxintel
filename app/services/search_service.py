@@ -25,22 +25,30 @@ def search_with_serpapi(keyword: str, provider: str) -> str:
     if not config.serpapi_api_key:
         raise ValueError("SERPAPI_API_KEY is not set in .env.")
 
-    engine_map = {
-        "google": "google",
-        "yandex": "yandex",
-    }
+    provider = provider.lower()
 
-    engine = engine_map.get(provider.lower())
-    if not engine:
+    if provider == "google":
+        params = {
+            "engine": "google",
+            "q": keyword,
+            "api_key": config.serpapi_api_key,
+        }
+
+    elif provider == "yandex":
+        params = {
+            "engine": "yandex",
+            "text": keyword,
+            "yandex_domain": "yandex.com",
+            "lang": "en",
+            "api_key": config.serpapi_api_key,
+        }
+
+    else:
         raise ValueError("SerpApi search supports only google and yandex.")
 
     response = requests.get(
         "https://serpapi.com/search.json",
-        params={
-            "engine": engine,
-            "q": keyword,
-            "api_key": config.serpapi_api_key,
-        },
+        params=params,
         timeout=20,
     )
     response.raise_for_status()
