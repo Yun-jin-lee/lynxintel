@@ -12,26 +12,53 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    open_parser = subparsers.add_parser("open", help="Open a direct URL with Lynx.")
-    open_parser.add_argument("input", help="Direct URL to open.")
+    open_parser = subparsers.add_parser(
+        "open",
+        help="Open a direct URL with Lynx.",
+    )
+    open_parser.add_argument(
+        "input",
+        help="Direct URL to open.",
+    )
     open_parser.add_argument(
         "--dump",
         action="store_true",
         help="Render page as plain text instead of interactive mode.",
     )
 
-    search_parser = subparsers.add_parser("search", help="Search a keyword with a text-friendly search page.")
-    search_parser.add_argument("input", help="Keyword to search for.")
+    search_parser = subparsers.add_parser(
+        "search",
+        help="Search a keyword through a provider and open the search page in Lynx.",
+    )
+    search_parser.add_argument(
+        "input",
+        help="Keyword to search for.",
+    )
+    search_parser.add_argument(
+        "--provider",
+        choices=["ddg", "google", "yandex", "baidu"],
+        default="ddg",
+        help="Search provider to use. Default: ddg",
+    )
     search_parser.add_argument(
         "--dump",
         action="store_true",
         help="Render search page as plain text instead of interactive mode.",
     )
 
-    probe_parser = subparsers.add_parser("probe", help="Send a magnet link to qBittorrent.")
-    probe_parser.add_argument("input", help="Magnet link to probe/add.")
+    probe_parser = subparsers.add_parser(
+        "probe",
+        help="Send a magnet link or torrent URL to qBittorrent.",
+    )
+    probe_parser.add_argument(
+        "input",
+        help="Magnet link or torrent URL.",
+    )
 
-    subparsers.add_parser("status", help="Show qBittorrent torrent status.")
+    subparsers.add_parser(
+        "status",
+        help="Show qBittorrent backend status.",
+    )
 
     return parser
 

@@ -11,7 +11,7 @@ def dispatch(args: Namespace) -> int:
         return handle_open(args.input, dump=args.dump)
 
     if args.command == "search":
-        return handle_search(args.input, dump=args.dump)
+        return handle_search(args.input, provider=args.provider, dump=args.dump)
 
     if args.command == "probe":
         return handle_probe(args.input)
