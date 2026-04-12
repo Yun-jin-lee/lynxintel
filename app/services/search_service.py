@@ -6,6 +6,9 @@ from app.adapters.lynx_client import open_with_lynx
 from app.config import load_config
 
 
+PAGE_SIZE = 5
+
+
 def build_search_url(keyword: str, provider: str) -> str:
     query = quote_plus(keyword)
     provider = provider.lower()
@@ -19,7 +22,7 @@ def build_search_url(keyword: str, provider: str) -> str:
     raise ValueError("Direct URL building is only used for ddg and baidu.")
 
 
-def get_serpapi_results(keyword: str, provider: str, max_results: int = 5) -> list[dict]:
+def get_serpapi_results(keyword: str, provider: str, page: int = 1) -> list[dict]:
     config = load_config()
 
     if not config.serpapi_api_key:
@@ -31,16 +34,21 @@ def get_serpapi_results(keyword: str, provider: str, max_results: int = 5) -> li
         params = {
             "engine": "google",
             "q": keyword,
+            "start": (page - 1) * PAGE_SIZE,
+            "num": PAGE_SIZE,
             "api_key": config.serpapi_api_key,
         }
+
     elif provider == "yandex":
         params = {
             "engine": "yandex",
             "text": keyword,
+            "p": page - 1,
             "yandex_domain": "yandex.com",
             "lang": "en",
             "api_key": config.serpapi_api_key,
         }
+
     else:
         raise ValueError("SerpApi supports only google and yandex in this flow.")
 
@@ -54,56 +62,70 @@ def get_serpapi_results(keyword: str, provider: str, max_results: int = 5) -> li
     data = response.json()
     organic_results = data.get("organic_results", [])
 
-    cleaned_results = []
-    for result in organic_results[:max_results]:
-        title = result.get("title") or "<no title>"
-        link = result.get("link")
-        snippet = result.get("snippet") or ""
-
+    results: list[dict] = []
+    for item in organic_results[:PAGE_SIZE]:
+        link = item.get("link")
         if not link:
             continue
 
-        cleaned_results.append(
+        results.append(
             {
-                "title": title,
+                "title": item.get("title") or "<no title>",
                 "link": link,
-                "snippet": snippet,
+                "snippet": item.get("snippet") or "",
             }
         )
 
-    if not cleaned_results:
-        raise RuntimeError(f"No usable {provider} results returned by SerpApi.")
-
-    return cleaned_results
+    return results
 
 
-def choose_result(results: list[dict]) -> str:
-    print()
-    print("[OK] Search results")
-    print()
-
-    for idx, result in enumerate(results, start=1):
-        print(f"[{idx}] {result['title']}")
-        print(f"    {result['link']}")
-        if result["snippet"]:
-            print(f"    {result['snippet']}")
-        print()
+def choose_serpapi_result(keyword: str, provider: str) -> str:
+    page = 1
 
     while True:
-        choice = input("Choose result number (or q to quit): ").strip().lower()
+        results = get_serpapi_results(keyword, provider, page=page)
+
+        if not results:
+            if page == 1:
+                raise RuntimeError(f"No usable {provider} results returned.")
+            print("[INFO] No more results.")
+            page -= 1
+            continue
+
+        print()
+        print(f"[OK] {provider.capitalize()} results - page {page}")
+        print()
+
+        for idx, result in enumerate(results, start=1):
+            print(f"[{idx}] {result['title']}")
+            print(f"    {result['link']}")
+            if result["snippet"]:
+                print(f"    {result['snippet']}")
+            print()
+
+        print("Commands: 1-5=open, n=next page, p=previous page, q=quit")
+        choice = input("Choose: ").strip().lower()
 
         if choice == "q":
             raise KeyboardInterrupt
 
-        if not choice.isdigit():
-            print("[ERROR] Please enter a number or q.")
+        if choice == "n":
+            page += 1
             continue
 
-        number = int(choice)
-        if 1 <= number <= len(results):
-            return results[number - 1]["link"]
+        if choice == "p":
+            if page > 1:
+                page -= 1
+            else:
+                print("[INFO] Already on the first page.")
+            continue
 
-        print(f"[ERROR] Choose a number between 1 and {len(results)}.")
+        if choice.isdigit():
+            number = int(choice)
+            if 1 <= number <= len(results):
+                return results[number - 1]["link"]
+
+        print("[ERROR] Invalid choice.")
 
 
 def handle_search(user_input: str, provider: str = "ddg", dump: bool = False) -> int:
@@ -117,8 +139,7 @@ def handle_search(user_input: str, provider: str = "ddg", dump: bool = False) ->
         print("[INFO] External provider selected through SerpApi.")
         print("[INFO] This may reduce privacy compared to the default provider.")
 
-        results = get_serpapi_results(user_input, provider)
-        target_url = choose_result(results)
+        target_url = choose_serpapi_result(user_input, provider)
 
         print()
         print(f"[INFO] Opening selected result: {target_url}")
