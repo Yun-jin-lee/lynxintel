@@ -2,14 +2,18 @@ from app.adapters.qbittorrent_client import QBittorrentClient
 
 
 def handle_probe(user_input: str) -> int:
-    magnet = user_input.strip()
+    value = user_input.strip()
 
-    if not magnet.startswith("magnet:?"):
-        raise ValueError("Probe currently supports magnet links only.")
+    if not (
+        value.startswith("magnet:?")
+        or value.startswith("http://")
+        or value.startswith("https://")
+    ):
+        raise ValueError("Probe supports magnet links and torrent URLs.")
 
     client = QBittorrentClient()
-    client.add_magnet(magnet)
+    client.add_magnet(value)
 
-    print("[OK] Magnet detected")
-    print("[OK] Magnet added to qBittorrent")
+    print("[OK] Torrent input detected")
+    print("[OK] Input sent to qBittorrent")
     return 0
