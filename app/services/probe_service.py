@@ -11,5 +11,5 @@ def handle_probe(user_input: str) -> int:
     client.add_magnet(magnet)
 
     print("[OK] Magnet detected")
-    print("[OK] Magnet sent to qBittorrent successfully")
+    print("[OK] Magnet added to qBittorrent")
     return 0

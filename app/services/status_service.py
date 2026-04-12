@@ -10,6 +10,8 @@ def handle_status() -> int:
         return 0
 
     print("[OK] qBittorrent status")
+    print()
+
     for idx, torrent in enumerate(torrents, start=1):
         name = torrent.get("name", "<unknown>")
         state = torrent.get("state", "<unknown>")
@@ -17,9 +19,9 @@ def handle_status() -> int:
         size = torrent.get("size", 0)
 
         print(f"[{idx}] {name}")
-        print(f"     state: {state}")
-        print(f"     progress: {progress}%")
-        print(f"     size: {size}")
+        print(f"    state: {state}")
+        print(f"    progress: {progress}%")
+        print(f"    size: {size}")
         print()
 
     return 0

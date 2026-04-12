@@ -8,11 +8,10 @@ from app.config import load_config
 class QBittorrentClient:
     def __init__(self) -> None:
         config = load_config()
-        self.base_url = config.qbittorrent_url
+        self.base_url = config.qbittorrent_url.rstrip("/")
         self.username = config.qbittorrent_username
         self.password = config.qbittorrent_password
         self.session = requests.Session()
-        self.session.headers.update({"Referer": self.base_url})
 
     def login(self) -> None:
         response = self.session.post(
@@ -26,7 +25,7 @@ class QBittorrentClient:
         response.raise_for_status()
 
         if response.text.strip() != "Ok.":
-            raise RuntimeError("qBittorrent login failed. Check URL, username, and password.")
+            raise RuntimeError("qBittorrent login failed. Check credentials in .env.")
 
     def add_magnet(self, magnet: str) -> None:
         self.login()
