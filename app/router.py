@@ -16,6 +16,7 @@ def dispatch(args: Namespace) -> int:
             provider=args.provider,
             dump=args.dump,
             unique=getattr(args, "unique", False),
+            delta=getattr(args, "delta", False),
         )
 
     if args.command == "probe":

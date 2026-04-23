@@ -47,9 +47,14 @@ Show unique first-page results from multiple SearXNG engines:
 python main.py search "query string" --unique
 ```
 
+Show only the delta summary with unique engine-only results and common shared hits:
+```bash
+python main.py search "query string" --delta
+```
+
 Or use the root wrapper script directly:
 ```bash
-./liris search "query string" --unique
+./liris search "query string" --delta
 ```
 
 ### 3. Torrent Management

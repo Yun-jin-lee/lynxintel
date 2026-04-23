@@ -50,6 +50,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Compare the first page of results from multiple SearXNG engines and show unique browser-specific hits.",
     )
+    search_parser.add_argument(
+        "--delta",
+        action="store_true",
+        help="Show only unique results per engine and common shared results in a concise delta view.",
+    )
 
     probe_parser = subparsers.add_parser(
         "probe",

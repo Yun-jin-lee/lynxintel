@@ -144,6 +144,37 @@ def print_search_delta(keyword: str, engine_results: dict[str, list[dict]]) -> N
         print()
 
 
+def print_search_delta_summary(keyword: str, engine_results: dict[str, list[dict]]) -> None:
+    unique_by_engine, shared_results = find_unique_delta(engine_results)
+
+    print()
+    print(f"[OK] SearXNG delta summary for query: '{keyword}'")
+    print(f"[INFO] Compared engines: {', '.join(engine_results)}")
+    print(f"[INFO] Each engine first page size: {UNIQUE_PAGE_SIZE}")
+    print()
+
+    for engine, unique_results in unique_by_engine.items():
+        print(f"[UNIQUE] {engine} ({len(unique_results)})")
+        if unique_results:
+            for idx, result in enumerate(unique_results, start=1):
+                print(f"  {idx}. {result['title']}")
+                print(f"       {result['link']}")
+            print()
+        else:
+            print("  None\n")
+
+    if shared_results:
+        print(f"[COMMON] Shared results ({len(shared_results)})")
+        for engines, result in shared_results:
+            engines_label = ", ".join(sorted(engines))
+            print(f"  - {result['title']} [{engines_label}]")
+            print(f"       {result['link']}")
+        print()
+    else:
+        print("[COMMON] No overlapping results found among engines.")
+        print()
+
+
 def choose_searxng_result(keyword: str, provider: str) -> str:
     page = 1
 
@@ -196,10 +227,22 @@ def choose_searxng_result(keyword: str, provider: str) -> str:
         print("[ERROR] Invalid choice.")
 
 
-def handle_search(user_input: str, provider: str = "all", dump: bool = False, unique: bool = False) -> int:
+def handle_search(user_input: str, provider: str = "all", dump: bool = False, unique: bool = False, delta: bool = False) -> int:
     print("[OK] Keyword detected")
     print("[INFO] Provider: searxng")
     print(f"[INFO] Search query: {user_input}")
+
+    if unique and delta:
+        raise ValueError("--unique and --delta cannot be used together.")
+
+    if delta:
+        if provider != "all":
+            raise ValueError("--delta can only be used with --provider all because it compares multiple engines.")
+
+        engine_results = get_searxng_comparison(user_input)
+        print_search_delta_summary(user_input, engine_results)
+        return 0
+
 
     if unique:
         if provider != "all":
