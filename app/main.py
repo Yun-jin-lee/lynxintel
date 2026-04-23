@@ -45,6 +45,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Render the chosen result page as plain text instead of interactive mode.",
     )
+    search_parser.add_argument(
+        "--unique",
+        action="store_true",
+        help="Compare the first page of results from multiple SearXNG engines and show unique browser-specific hits.",
+    )
 
     probe_parser = subparsers.add_parser(
         "probe",

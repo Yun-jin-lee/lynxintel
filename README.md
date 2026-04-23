@@ -42,6 +42,16 @@ Search the web via SearXNG and select a link to open in Lynx:
 python main.py search "query string" --provider google
 ```
 
+Show unique first-page results from multiple SearXNG engines:
+```bash
+python main.py search "query string" --unique
+```
+
+Or use the root wrapper script directly:
+```bash
+./liris search "query string" --unique
+```
+
 ### 3. Torrent Management
 Add a magnet link to your qBittorrent client:
 ```bash
