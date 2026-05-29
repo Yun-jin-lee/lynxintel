@@ -9,6 +9,7 @@ from app.config import load_config
 PAGE_SIZE = 5
 UNIQUE_PAGE_SIZE = 10
 COMPARE_ENGINES = ["google", "yandex", "baidu"]
+CAPTCHA_SUSPEND_SECONDS = 3600  # SearxEngineCaptcha from settings.yml
 
 
 def normalize_search_url(url: str) -> str:
@@ -26,26 +27,32 @@ def normalize_search_url(url: str) -> str:
     return urlunparse(normalized)
 
 
-def get_searxng_results(keyword: str, provider: str = "all", page: int = 1, page_size: int = PAGE_SIZE) -> list[dict]:
+def _fetch_search_data(keyword: str, provider: str = "all", page: int = 1) -> dict:
     config = load_config()
-
-    params = {
-        "q": keyword,
-        "format": "json",
-        "pageno": page,
-    }
-
+    params = {"q": keyword, "format": "json", "pageno": page}
     if provider != "all":
         params["engines"] = provider
-
-    response = requests.get(
-        f"{config.searxng_url}/search",
-        params=params,
-        timeout=20,
-    )
+    response = requests.get(f"{config.searxng_url}/search", params=params, timeout=20)
     response.raise_for_status()
+    return response.json()
 
-    data = response.json()
+
+def _engine_error(data: dict, engine: str) -> str | None:
+    """Return error text for a specific engine from unresponsive_engines, or None."""
+    for name, error_text in data.get("unresponsive_engines", []):
+        if name == engine:
+            return error_text
+    return None
+
+
+def _format_engine_error(error_text: str) -> str:
+    if "captcha" in error_text.lower():
+        return f"[CAPTCHA] Engine geblokkeerd — wacht ~1 uur ({CAPTCHA_SUSPEND_SECONDS}s)"
+    return f"[FOUT] {error_text}"
+
+
+def get_searxng_results(keyword: str, provider: str = "all", page: int = 1, page_size: int = PAGE_SIZE) -> list[dict]:
+    data = _fetch_search_data(keyword, provider=provider, page=page)
     raw_results = data.get("results", [])
 
     cleaned_results: list[dict] = []
@@ -53,7 +60,6 @@ def get_searxng_results(keyword: str, provider: str = "all", page: int = 1, page
         url = item.get("url")
         if not url:
             continue
-
         cleaned_results.append(
             {
                 "title": item.get("title") or "<no title>",
@@ -62,17 +68,29 @@ def get_searxng_results(keyword: str, provider: str = "all", page: int = 1, page
                 "engine": item.get("engine") or "",
             }
         )
-
     return cleaned_results
 
 
-def get_searxng_comparison(keyword: str, page: int = 1, page_size: int = UNIQUE_PAGE_SIZE) -> dict[str, list[dict]]:
+def get_searxng_comparison(keyword: str, page: int = 1, page_size: int = UNIQUE_PAGE_SIZE) -> tuple[dict[str, list[dict]], dict[str, str]]:
     comparison_results: dict[str, list[dict]] = {}
+    engine_errors: dict[str, str] = {}
     for engine in COMPARE_ENGINES:
-        comparison_results[engine] = get_searxng_results(
-            keyword, provider=engine, page=page, page_size=page_size
-        )
-    return comparison_results
+        data = _fetch_search_data(keyword, provider=engine, page=page)
+        raw = data.get("results", [])
+        comparison_results[engine] = [
+            {
+                "title": item.get("title") or "<no title>",
+                "link": item["url"],
+                "snippet": item.get("content") or "",
+                "engine": item.get("engine") or "",
+            }
+            for item in raw[:page_size]
+            if item.get("url")
+        ]
+        err = _engine_error(data, engine)
+        if err:
+            engine_errors[engine] = _format_engine_error(err)
+    return comparison_results, engine_errors
 
 
 def build_result_key(result: dict) -> str:
@@ -105,7 +123,8 @@ def find_unique_delta(engine_results: dict[str, list[dict]]) -> tuple[dict[str, 
     return unique_by_engine, shared_results
 
 
-def print_search_delta(keyword: str, engine_results: dict[str, list[dict]]) -> None:
+def print_search_delta(keyword: str, engine_results: dict[str, list[dict]], engine_errors: dict[str, str] | None = None) -> None:
+    engine_errors = engine_errors or {}
     unique_by_engine, shared_results = find_unique_delta(engine_results)
 
     print()
@@ -117,20 +136,19 @@ def print_search_delta(keyword: str, engine_results: dict[str, list[dict]]) -> N
     # Display all results per engine
     for engine, results in engine_results.items():
         print(f"\n{'='*80}")
-        print(f"[ENGINE] {engine.upper()} ({len(results)} results)")
+        err_label = f"  {engine_errors[engine]}" if engine in engine_errors else ""
+        print(f"[ENGINE] {engine.upper()} ({len(results)} results){err_label}")
         print(f"{'='*80}")
-        table_data = []
-        for idx, result in enumerate(results, start=1):
-            snippet = result.get("snippet", "")
-            if snippet and len(snippet) > 60:
-                snippet = snippet[:57] + "..."
-            table_data.append([
-                idx,
-                result['title'],
-                result['link'],
-                snippet
-            ])
-        print(tabulate(table_data, headers=["#", "Title", "URL", "Snippet"], tablefmt="grid", maxcolwidths=[3, 25, 40, 30]))
+        if not results and engine in engine_errors:
+            print(f"  {engine_errors[engine]}")
+        else:
+            table_data = []
+            for idx, result in enumerate(results, start=1):
+                snippet = result.get("snippet", "")
+                if snippet and len(snippet) > 60:
+                    snippet = snippet[:57] + "..."
+                table_data.append([idx, result['title'], result['link'], snippet])
+            print(tabulate(table_data, headers=["#", "Title", "URL", "Snippet"], tablefmt="grid", maxcolwidths=[3, 25, 40, 30]))
         print()
 
     # Display unique results per engine
@@ -142,12 +160,10 @@ def print_search_delta(keyword: str, engine_results: dict[str, list[dict]]) -> N
         if unique_results:
             table_data = []
             for idx, result in enumerate(unique_results, start=1):
-                table_data.append([
-                    idx,
-                    result['title'],
-                    result['link']
-                ])
+                table_data.append([idx, result['title'], result['link']])
             print(tabulate(table_data, headers=["#", "Title", "URL"], tablefmt="simple"))
+        elif engine in engine_errors:
+            print(f"  {engine_errors[engine]}")
         else:
             print("  (none)")
         print()
@@ -174,7 +190,8 @@ def print_search_delta(keyword: str, engine_results: dict[str, list[dict]]) -> N
 
 
 
-def print_search_delta_summary(keyword: str, engine_results: dict[str, list[dict]]) -> None:
+def print_search_delta_summary(keyword: str, engine_results: dict[str, list[dict]], engine_errors: dict[str, str] | None = None) -> None:
+    engine_errors = engine_errors or {}
     unique_by_engine, shared_results = find_unique_delta(engine_results)
 
     print()
@@ -190,8 +207,10 @@ def print_search_delta_summary(keyword: str, engine_results: dict[str, list[dict
                 print(f"  {idx}. {result['title']}")
                 print(f"       {result['link']}")
             print()
+        elif engine in engine_errors:
+            print(f"  {engine_errors[engine]}\n")
         else:
-            print("  None\n")
+            print("  Geen resultaten\n")
 
     if shared_results:
         print(f"[COMMON] Shared results ({len(shared_results)})")
@@ -209,9 +228,24 @@ def choose_searxng_result(keyword: str, provider: str) -> str:
     page = 1
 
     while True:
-        results = get_searxng_results(keyword, provider=provider, page=page)
+        data = _fetch_search_data(keyword, provider=provider, page=page)
+        raw_results = data.get("results", [])
+        results = [
+            {
+                "title": item.get("title") or "<no title>",
+                "link": item["url"],
+                "snippet": item.get("content") or "",
+                "engine": item.get("engine") or "",
+            }
+            for item in raw_results[:PAGE_SIZE]
+            if item.get("url")
+        ]
 
         if not results:
+            # Check for engine-specific errors (CAPTCHA, access denied, etc.)
+            for name, error_text in data.get("unresponsive_engines", []):
+                if provider == "all" or name == provider:
+                    print(_format_engine_error(error_text).replace("[", f"[{name.upper()} "))
             if page == 1:
                 raise RuntimeError(f"No usable results returned for provider '{provider}'.")
             print("[INFO] No more results.")
@@ -269,17 +303,16 @@ def handle_search(user_input: str, provider: str = "all", dump: bool = False, un
         if provider != "all":
             raise ValueError("--delta can only be used with --provider all because it compares multiple engines.")
 
-        engine_results = get_searxng_comparison(user_input)
-        print_search_delta_summary(user_input, engine_results)
+        engine_results, engine_errors = get_searxng_comparison(user_input)
+        print_search_delta_summary(user_input, engine_results, engine_errors)
         return 0
-
 
     if unique:
         if provider != "all":
             raise ValueError("--unique can only be used with --provider all because it compares multiple engines.")
 
-        engine_results = get_searxng_comparison(user_input)
-        print_search_delta(user_input, engine_results)
+        engine_results, engine_errors = get_searxng_comparison(user_input)
+        print_search_delta(user_input, engine_results, engine_errors)
         return 0
 
     if provider != "all":
