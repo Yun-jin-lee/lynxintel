@@ -21,36 +21,304 @@ QBITTORRENT_PASSWORD=adminadmin
 SEARXNG_URL=http://localhost:8888
 ```
 
-## Usage
+## LIRIS Setup Guide
 
-Liris provides a simple sub-command structure:
+### Important System Requirements
 
-### 1. Browse the Web
-Open a URL in interactive mode:
+You need **3 terminals** running simultaneously in WSL:
+
+- **Terminal 1** = SearXNG
+- **Terminal 2** = qBittorrent-nox
+- **Terminal 3** = LIRIS commands
+
+---
+
+### Category 1: Update Repository
+
+Only do this after the owner has merged the feature branch into main.
+
+Navigate to your LIRIS project directory in WSL:
+
 ```bash
-python main.py open https://example.com
+cd <your-path-to-LIRIS>
+git checkout main
+git pull origin main
 ```
 
-Dump the text content of a page:
+**Verify:**
+
 ```bash
-python main.py open https://example.com --dump
+git branch
 ```
 
-### 2. Search
-Search the web via SearXNG and select a link to open in Lynx:
+---
+
+### Category 2: Create LIRIS Environment
+
+In the LIRIS project directory:
+
 ```bash
-python main.py search "query string" --provider google
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-### 3. Torrent Management
-Add a magnet link to your qBittorrent client:
+Make sure the `liris` file works:
+
 ```bash
-python main.py probe "magnet:?xt=urn:btih:..."
+sed -i 's/\r$//' liris
+chmod +x liris
 ```
 
-Check the status of your torrents:
+**If the file is still named `Liris` (with capital L):**
+
 ```bash
-python main.py status
+mv Liris liris
+sed -i 's/\r$//' liris
+chmod +x liris
+```
+
+---
+
+### Category 3: Create .env File
+
+Create a `.env` file in the root of your LIRIS project directory with the following contents:
+
+```bash
+LYNX_BIN=lynx
+QBITTORRENT_URL=http://localhost:8080
+QBITTORRENT_USERNAME=admin
+QBITTORRENT_PASSWORD=admin123
+SEARXNG_URL=http://localhost:8888
+```
+
+**Important:** Only modify `QBITTORRENT_PASSWORD` if you use a different password locally.
+
+---
+
+### Category 4: Install WSL Packages
+
+You typically only need to do this once:
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv python3-dev build-essential libxslt-dev libffi-dev libssl-dev qbittorrent-nox lynx
+```
+
+---
+
+### Category 5: Install and Start qBittorrent-nox
+
+qBittorrent-nox is installed via apt (completed in Category 4), not cloned.
+
+#### Start qBittorrent-nox
+
+**Terminal 2:**
+
+```bash
+qbittorrent-nox --webui-port=8080
+```
+
+#### Browser Check
+
+Open in your browser:
+
+```bash
+http://localhost:8080
+```
+
+Log in and set your own password if needed. **Update your LIRIS .env file with this password if you change it.**
+
+---
+
+### Category 6: Download SearXNG
+
+Clone SearXNG in a separate directory (not in LIRIS):
+
+```bash
+cd ~
+git clone https://github.com/searxng/searxng.git
+cd searxng
+```
+
+---
+
+### Category 7: Create SearXNG Virtual Environment
+
+In `~/searxng`:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+pip install -U setuptools wheel pyyaml msgspec typing-extensions pybind11
+pip install --use-pep517 --no-build-isolation -e .
+```
+
+#### Verify Installation
+
+```bash
+python -c "import searx; print('searx import ok')"
+```
+
+---
+
+### Category 8: Enable JSON in SearXNG
+
+Open the settings file:
+
+```bash
+cd ~/searxng
+nano ./searx/settings.yml
+```
+
+Find the `formats:` section and ensure it looks like this:
+
+```yaml
+formats:
+  - html
+  - json
+```
+
+#### Save in nano
+
+- `Ctrl+O`
+- `Enter`
+- `Ctrl+X`
+
+---
+
+### Category 9: Start SearXNG
+
+**Terminal 1:**
+
+```bash
+cd ~/searxng
+source .venv/bin/activate
+make run
+```
+
+#### Browser Check
+
+Open in your browser:
+
+```bash
+http://localhost:8888
+```
+
+If you see the SearXNG homepage, everything is working.
+
+---
+
+### Category 10: Using LIRIS
+
+**Terminal 3:**
+
+```bash
+cd <your-path-to-LIRIS>
+source .venv/bin/activate
+```
+
+#### Search
+
+```bash
+./liris search "kuznyechik"
+./liris search "kuznyechik" --provider google
+./liris search "kuznyechik" --provider yandex
+./liris search "kuznyechik" --provider baidu
+```
+
+#### Open URL
+
+```bash
+./liris open "https://en.wikipedia.org/wiki/Kuznyechik"
+```
+
+#### Check qBittorrent Status
+
+```bash
+./liris status
+```
+
+#### Add Torrent
+
+```bash
+./liris probe "https://releases.ubuntu.com/24.04/ubuntu-24.04.4-desktop-amd64.iso.torrent"
+```
+
+---
+
+### Category 11: Terminal Summary
+
+Quick reference for starting all three terminals:
+
+#### Terminal 1: SearXNG
+
+```bash
+cd ~/searxng
+source .venv/bin/activate
+make run
+```
+
+#### Terminal 2: qBittorrent-nox
+
+```bash
+qbittorrent-nox --webui-port=8080
+```
+
+#### Terminal 3: LIRIS
+
+```bash
+cd <your-path-to-LIRIS>
+source .venv/bin/activate
+./liris search "kuznyechik"
+```
+
+---
+
+### Category 12: Important Rules
+
+- Every user must use their own local path in WSL
+- Do **not** use `Ctrl+Z`
+- Stop SearXNG with `Ctrl+C`
+- Stop qBittorrent-nox with `Ctrl+C`
+- Exit Lynx with `q`
+
+---
+
+### Category 13: Troubleshooting
+
+#### Check if SearXNG is running
+
+```bash
+http://localhost:8888
+```
+
+#### Check if qBittorrent is running
+
+```bash
+http://localhost:8080
+```
+
+#### Check your current directory
+
+```bash
+pwd
+```
+
+#### Check if venv is activated
+
+You should see `(.venv)` before your command prompt.
+
+#### Check if .env file is correct
+
+```bash
+The `.env` file must be in the **root** of your LIRIS directory, not in `app/`.
+```
+
+```bash
+--- status
 ```
 
 ## Roadmap & Future Development
