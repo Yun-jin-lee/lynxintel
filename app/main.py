@@ -70,6 +70,26 @@ def build_parser() -> argparse.ArgumentParser:
         help="Show qBittorrent backend status.",
     )
 
+    archive_parser = subparsers.add_parser(
+        "archive-search",
+        help="Search archived Wayback snapshots for a keyword on a specific site.",
+    )
+    archive_parser.add_argument(
+        "input",
+        help="Keyword to search for.",
+    )
+    archive_parser.add_argument(
+        "--site",
+        required=True,
+        help="Website/domain to search in Wayback snapshots.",
+    )
+    archive_parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="Maximum number of snapshots to check.",
+    )
+
     return parser
 
 

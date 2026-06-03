@@ -4,6 +4,7 @@ from app.services.open_service import handle_open
 from app.services.probe_service import handle_probe
 from app.services.search_service import handle_search
 from app.services.status_service import handle_status
+from app.services.archive_search_service import handle_archive_search
 
 
 def dispatch(args: Namespace) -> int:
@@ -24,5 +25,12 @@ def dispatch(args: Namespace) -> int:
 
     if args.command == "status":
         return handle_status()
+
+    if args.command == "archive-search":
+        return handle_archive_search(
+            args.input,
+            site=args.site,
+            limit=args.limit,
+        )
 
     raise ValueError(f"Unknown command: {args.command}")
