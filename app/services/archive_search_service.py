@@ -1,5 +1,6 @@
 from app.adapters.wayback_client import WaybackClient
 from app.services.search_service import get_searxng_results
+import time
 
 
 def find_keyword_context(text: str, keyword: str, context_size: int = 100) -> str | None:
@@ -117,8 +118,8 @@ def handle_archive_search(
                 print(f"[SKIP] {candidate_site}")
                 print(f"[REASON] {exc}")
                 print()
-                continue
-
+                
+            time.sleep(2)
     print()
     if found_any:
         print("[OK] Archive search completed with matches.")
