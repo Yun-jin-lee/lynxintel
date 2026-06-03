@@ -13,7 +13,7 @@ class WaybackClient:
                 "collapse": "digest",
                 "limit": limit,
             },
-            timeout=60,
+            timeout=90,
         )
         response.raise_for_status()
 
@@ -33,7 +33,7 @@ class WaybackClient:
     def get_snapshot_text(self, timestamp: str, original_url: str) -> tuple[str, str]:
         wayback_url = f"https://web.archive.org/web/{timestamp}id_/{original_url}"
 
-        response = requests.get(wayback_url, timeout=60)
+        response = requests.get(wayback_url, timeout=90)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")

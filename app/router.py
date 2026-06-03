@@ -31,6 +31,7 @@ def dispatch(args: Namespace) -> int:
             args.input,
             site=args.site,
             limit=args.limit,
+            search_limit=args.search_limit,
         )
 
     raise ValueError(f"Unknown command: {args.command}")

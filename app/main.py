@@ -16,10 +16,7 @@ def build_parser() -> argparse.ArgumentParser:
         "open",
         help="Open a direct URL with Lynx.",
     )
-    open_parser.add_argument(
-        "input",
-        help="Direct URL to open.",
-    )
+    open_parser.add_argument("input", help="Direct URL to open.")
     open_parser.add_argument(
         "--dump",
         action="store_true",
@@ -30,10 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
         "search",
         help="Search through the local SearXNG backend and open the chosen result in Lynx.",
     )
-    search_parser.add_argument(
-        "input",
-        help="Keyword to search for.",
-    )
+    search_parser.add_argument("input", help="Keyword to search for.")
     search_parser.add_argument(
         "--provider",
         choices=["all", "google", "yandex", "baidu"],
@@ -60,10 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
         "probe",
         help="Send a magnet link or torrent URL to qBittorrent.",
     )
-    probe_parser.add_argument(
-        "input",
-        help="Magnet link or torrent URL.",
-    )
+    probe_parser.add_argument("input", help="Magnet link or torrent URL.")
 
     subparsers.add_parser(
         "status",
@@ -72,7 +63,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     archive_parser = subparsers.add_parser(
         "archive-search",
-        help="Search archived Wayback snapshots for a keyword on a specific site.",
+        help="Search archived Wayback snapshots for a keyword.",
     )
     archive_parser.add_argument(
         "input",
@@ -80,14 +71,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     archive_parser.add_argument(
         "--site",
-        required=True,
-        help="Website/domain to search in Wayback snapshots.",
+        required=False,
+        help="Optional website/domain to search in Wayback snapshots.",
     )
     archive_parser.add_argument(
         "--limit",
         type=int,
         default=5,
-        help="Maximum number of snapshots to check.",
+        help="Maximum number of snapshots to check per site.",
+    )
+    archive_parser.add_argument(
+        "--search-limit",
+        type=int,
+        default=3,
+        help="Number of SearXNG results to use when --site is not provided.",
     )
 
     return parser
