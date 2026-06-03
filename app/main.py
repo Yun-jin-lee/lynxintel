@@ -28,7 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     search_parser = subparsers.add_parser(
         "search",
-        help="Search through the local SearXNG backend and open the chosen result in Lynx.",
+        help="Search through SearXNG, BitTorrent (via Jackett), or open the chosen result.",
     )
     search_parser.add_argument(
         "input",
@@ -36,9 +36,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     search_parser.add_argument(
         "--provider",
-        choices=["all", "google", "yandex", "baidu"],
+        choices=["all", "google", "yandex", "baidu", "torrent"],
         default="all",
-        help="Search provider filter inside SearXNG. Default: all",
+        help="Search provider: SearXNG engines (all/google/yandex/baidu) or 'torrent' for BitTorrent search. Default: all",
     )
     search_parser.add_argument(
         "--dump",

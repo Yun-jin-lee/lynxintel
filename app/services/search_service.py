@@ -1,6 +1,10 @@
+# app/services/search_service.py
+
 import requests
 
+from app.adapters.jackett_client import JackettClient
 from app.adapters.lynx_client import open_with_lynx
+from app.adapters.qbittorrent_client import QBittorrentClient
 from app.config import load_config
 
 
@@ -45,6 +49,12 @@ def get_searxng_results(keyword: str, provider: str = "all", page: int = 1) -> l
         )
 
     return cleaned_results
+
+
+def get_bittorrent_results(keyword: str) -> list[dict]:
+    """Get torrent search results from qBittorrent."""
+    client = QBittorrentClient()
+    return client.search_torrents(keyword, limit=PAGE_SIZE)
 
 
 def choose_searxng_result(keyword: str, provider: str) -> str:
@@ -99,15 +109,102 @@ def choose_searxng_result(keyword: str, provider: str) -> str:
         print("[ERROR] Invalid choice.")
 
 
-def handle_search(user_input: str, provider: str = "all", dump: bool = False) -> int:
-    print("[OK] Keyword detected")
-    print("[INFO] Provider: searxng")
-    print(f"[INFO] Search query: {user_input}")
-    if provider != "all":
-        print(f"[INFO] Engine filter: {provider}")
+def choose_bittorrent_result(keyword: str) -> str:
+    """Choose a torrent result and optionally add it to qBittorrent."""
+    results = get_bittorrent_results(keyword)
 
-    target_url = choose_searxng_result(user_input, provider)
+    if not results:
+        raise RuntimeError("No torrent results found.")
 
     print()
-    print(f"[INFO] Opening selected result: {target_url}")
-    return open_with_lynx(target_url, dump=dump)
+    print("[OK] BitTorrent (qBittorrent Search) results")
+    print()
+
+    for idx, result in enumerate(results, start=1):
+        seeders = result.get("seeders", 0)
+        peers = result.get("peers", 0)
+        size_str = format_size(result.get("size", 0))
+        indexer = result.get("indexer", "Unknown")
+        print(f"[{idx}] {result['title']}")
+        print(f"    Size: {size_str} | Seeds: {seeders} | Peers: {peers}")
+        print(f"    Source: {indexer}")
+        print()
+
+    print("Commands: 1-5=add to qBittorrent, o=open in Lynx, q=quit")
+    choice = input("Choose: ").strip().lower()
+
+    if choice == "q":
+        raise KeyboardInterrupt
+
+    if choice == "o":
+        for idx, result in enumerate(results, start=1):
+            if result.get("link"):
+                return result["link"]
+        raise RuntimeError("No valid links found.")
+
+    if choice.isdigit():
+        number = int(choice)
+        if 1 <= number <= len(results):
+            selected = results[number - 1]
+            magnet = selected.get("magnet")
+
+            if magnet:
+                print(f"[INFO] Adding torrent to qBittorrent: {selected['title']}")
+                try:
+                    qb_client = QBittorrentClient()
+                    qb_client.add_magnet(magnet)
+                    print("[OK] Torrent added successfully!")
+                    return f"Added: {selected['title']}"
+                except Exception as e:
+                    print(f"[ERROR] Failed to add torrent: {str(e)}")
+                    raise
+            else:
+                link = selected.get("link", "")
+                if link:
+                    return link
+                raise RuntimeError("No magnet or link available for this torrent.")
+
+    print("[ERROR] Invalid choice.")
+    raise ValueError("Invalid choice selected.")
+
+
+def format_size(bytes_size: int) -> str:
+    """Format bytes to human-readable size."""
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if bytes_size < 1024:
+            return f"{bytes_size:.1f} {unit}"
+        bytes_size /= 1024
+    return f"{bytes_size:.1f} PB"
+
+
+def handle_search(user_input: str, provider: str = "all", dump: bool = False) -> int:
+    print("[OK] Keyword detected")
+    print(f"[INFO] Search query: {user_input}")
+
+    # Determine which search backend to use
+    if provider == "torrent":
+        print("[INFO] Provider: qBittorrent Search")
+        try:
+            result = choose_bittorrent_result(user_input)
+            if result.startswith("Added:"):
+                print(result)
+                return 0
+            else:
+                print()
+                print(f"[INFO] Opening selected result: {result}")
+                return open_with_lynx(result, dump=dump)
+        except Exception as e:
+            print(f"[ERROR] qBittorrent search failed: {str(e)}")
+            return 1
+    else:
+        print("[INFO] Provider: SearXNG")
+        if provider != "all":
+            print(f"[INFO] Engine filter: {provider}")
+        try:
+            target_url = choose_searxng_result(user_input, provider)
+            print()
+            print(f"[INFO] Opening selected result: {target_url}")
+            return open_with_lynx(target_url, dump=dump)
+        except Exception as e:
+            print(f"[ERROR] SearXNG search failed: {str(e)}")
+            return 1

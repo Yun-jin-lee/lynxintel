@@ -13,6 +13,8 @@ class AppConfig:
     qbittorrent_username: str
     qbittorrent_password: str
     searxng_url: str
+    jackett_url: str
+    jackett_api_key: str
 
 
 def load_config() -> AppConfig:
@@ -22,4 +24,6 @@ def load_config() -> AppConfig:
         qbittorrent_username=os.getenv("QBITTORRENT_USERNAME", "admin"),
         qbittorrent_password=os.getenv("QBITTORRENT_PASSWORD", "adminadmin"),
         searxng_url=os.getenv("SEARXNG_URL", "http://localhost:8888").rstrip("/"),
+        jackett_url=os.getenv("JACKETT_URL", "http://localhost:9117").rstrip("/"),
+        jackett_api_key=os.getenv("JACKETT_API_KEY", ""),
     )
