@@ -9,18 +9,6 @@ Liris is a CLI-first utility designed for efficient text-based web browsing via 
 - **qBittorrent Backend**: Add magnet links or torrent URLs directly to your remote or local qBittorrent instance.
 - **Status Monitoring**: Get a quick snapshot of your active torrents and their progress.
 
-## Configuration
-
-Create a `.env` file in the root directory to configure the application:
-
-```text
-LYNX_BIN=lynx
-QBITTORRENT_URL=http://localhost:8080
-QBITTORRENT_USERNAME=admin
-QBITTORRENT_PASSWORD=adminadmin
-SEARXNG_URL=http://localhost:8888
-```
-
 ## LIRIS Setup Guide
 
 ### Important System Requirements
@@ -33,7 +21,15 @@ You need **3 terminals** running simultaneously in WSL:
 
 ---
 
-### Category 1: Update Repository
+### Category 1: Clone or update Repository
+
+If this is a fresh install, clone the repository using the following command.
+
+```bash
+git clone https://github.com/Yun-jin-lee/LIRIS
+```
+
+Otherwise follow the commands below
 
 Only do this after the owner has merged the feature branch into main.
 
@@ -63,7 +59,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Make sure the `liris` file works:
+Convert windows line endings to linux and turn the `liris` file into an executable:
 
 ```bash
 sed -i 's/\r$//' liris
@@ -127,7 +123,8 @@ Open in your browser:
 http://localhost:8080
 ```
 
-Log in and set your own password if needed. **Update your LIRIS .env file with this password if you change it.**
+Log in with the default credentials found in the terminal and set your own password if needed.
+**Update your LIRIS .env file with this password if you change it.**
 
 ---
 
