@@ -29,7 +29,7 @@ You need **3 terminals** running simultaneously in WSL:
 
 ---
 
-### Category 1: Clone or update Repository (Terminal 1)
+### Step 1: Clone or update Repository (Terminal 1)
 
 If this is a fresh install, clone the repository using the following command.
 
@@ -57,7 +57,7 @@ git branch
 
 ---
 
-### Category 2: Create LIRIS Environment (Terminal 1)
+### Step 2: Create LIRIS Environment (Terminal 1)
 
 In the LIRIS project directory:
 
@@ -74,19 +74,24 @@ sed -i 's/\r$//' liris
 chmod +x liris
 ```
 
-**If the file is still named `Liris` (with capital L):**
-
-```bash
-mv Liris liris
-sed -i 's/\r$//' liris
-chmod +x liris
-```
-
 ---
 
-### Category 3: Create .env File
+### Step 3: Create .env File
 
-Create a `.env` file in the root of your LIRIS project directory with the following contents:
+Execute the following commands to create a `.env` file and edit it:
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+#### nano file saving:
+
+- `Ctrl+O`
+- `Enter`
+- `Ctrl+X`
+
+Make sure the contents look like the following:
 
 ```bash
 LYNX_BIN=lynx
@@ -100,7 +105,7 @@ SEARXNG_URL=http://localhost:8888
 
 ---
 
-### Category 4: Install WSL Packages (Terminal 2)
+### Step 4: Install WSL Packages (Terminal 2)
 
 You typically only need to do this once:
 
@@ -111,9 +116,9 @@ sudo apt install -y git python3 python3-venv python3-dev build-essential libxslt
 
 ---
 
-### Category 5: Install and Start qBittorrent-nox (Terminal 2)
+### Step 5: Install and Start qBittorrent-nox (Terminal 2)
 
-qBittorrent-nox is installed via apt (completed in Category 4), not cloned.
+qBittorrent-nox is installed via apt (completed in Step 4), not cloned.
 
 #### Start qBittorrent-nox
 
@@ -136,7 +141,7 @@ Log in with the default credentials found in the terminal and set your own passw
 
 ---
 
-### Category 6: Download SearXNG (Terminal 3)
+### Step 6: Download SearXNG (Terminal 3)
 
 Clone SearXNG in a separate directory (not in LIRIS):
 
@@ -148,7 +153,7 @@ cd searxng
 
 ---
 
-### Category 7: Create SearXNG Virtual Environment (Terminal 3)
+### Step 7: Create SearXNG Virtual Environment (Terminal 3)
 
 In `~/searxng`:
 
@@ -169,14 +174,19 @@ python -c "import searx; print('searx import ok')"
 
 ---
 
-### Category 8: Enable JSON in SearXNG (Terminal 3)
-
+### Step 8: Enable JSON in SearXNG (Terminal 3)
 Open the settings file:
 
 ```bash
 cd ~/searxng
 nano ./searx/settings.yml
 ```
+
+#### Nano file searching
+
+- `ctrl+W`
+- Type search term (example applicable in the instruction below: `formats`)
+- `Enter`
 
 Find the `formats:` section and ensure it looks like this:
 
@@ -186,15 +196,9 @@ formats:
   - json
 ```
 
-#### Save in nano
-
-- `Ctrl+O`
-- `Enter`
-- `Ctrl+X`
-
 ---
 
-### Category 9: Start SearXNG (Terminal 3)
+### Step 9: Start SearXNG (Terminal 3)
 
 **Terminal 1:**
 
@@ -203,6 +207,9 @@ cd ~/searxng
 source .venv/bin/activate
 make run
 ```
+
+The `make run` command can take quite a while depending on your device.
+Wait for completion before continuing the installation process.
 
 #### Browser Check
 
@@ -216,7 +223,7 @@ If you see the SearXNG homepage, everything is working.
 
 ---
 
-### Category 10: Using LIRIS (Terminal 1)
+### Step 10: Using LIRIS (Terminal 1)
 
 **Terminal 3:**
 
@@ -254,7 +261,7 @@ source .venv/bin/activate
 
 ---
 
-### Category 11: Terminal Summary
+### Terminal Summary
 
 Quick reference for starting all three terminals:
 
@@ -282,7 +289,7 @@ make run
 
 ---
 
-### Category 12: Important Rules
+### Important Rules
 
 - Every user must use their own local path in WSL
 - Do **not** use `Ctrl+Z`
@@ -292,7 +299,7 @@ make run
 
 ---
 
-### Category 13: Troubleshooting
+### Troubleshooting
 
 #### Check if SearXNG is running
 
