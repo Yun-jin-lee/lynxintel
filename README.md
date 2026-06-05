@@ -13,15 +13,23 @@ Liris is a CLI-first utility designed for efficient text-based web browsing via 
 
 ### Important System Requirements
 
+You need some software installed on your device before you are ready to start setting up LIRIS.
+
+First of all, in case you are working on windows, you will need to install [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) as some of the requirements for LIRIS only work on Linux.
+
+Second you will need a code editor, the one we used and tested and thus recommend is [Visual Studio Code](https://code.visualstudio.com/download).
+
+When both of those requirements are fullfilled you can continue with the installation proces:
+
 You need **3 terminals** running simultaneously in WSL:
 
-- **Terminal 1** = SearXNG
+- **Terminal 1** = LIRIS commands
 - **Terminal 2** = qBittorrent-nox
-- **Terminal 3** = LIRIS commands
+- **Terminal 3** = SearXNG
 
 ---
 
-### Category 1: Clone or update Repository
+### Category 1: Clone or update Repository (Terminal 1)
 
 If this is a fresh install, clone the repository using the following command.
 
@@ -49,7 +57,7 @@ git branch
 
 ---
 
-### Category 2: Create LIRIS Environment
+### Category 2: Create LIRIS Environment (Terminal 1)
 
 In the LIRIS project directory:
 
@@ -92,7 +100,7 @@ SEARXNG_URL=http://localhost:8888
 
 ---
 
-### Category 4: Install WSL Packages
+### Category 4: Install WSL Packages (Terminal 2)
 
 You typically only need to do this once:
 
@@ -103,7 +111,7 @@ sudo apt install -y git python3 python3-venv python3-dev build-essential libxslt
 
 ---
 
-### Category 5: Install and Start qBittorrent-nox
+### Category 5: Install and Start qBittorrent-nox (Terminal 2)
 
 qBittorrent-nox is installed via apt (completed in Category 4), not cloned.
 
@@ -128,7 +136,7 @@ Log in with the default credentials found in the terminal and set your own passw
 
 ---
 
-### Category 6: Download SearXNG
+### Category 6: Download SearXNG (Terminal 3)
 
 Clone SearXNG in a separate directory (not in LIRIS):
 
@@ -140,7 +148,7 @@ cd searxng
 
 ---
 
-### Category 7: Create SearXNG Virtual Environment
+### Category 7: Create SearXNG Virtual Environment (Terminal 3)
 
 In `~/searxng`:
 
@@ -161,7 +169,7 @@ python -c "import searx; print('searx import ok')"
 
 ---
 
-### Category 8: Enable JSON in SearXNG
+### Category 8: Enable JSON in SearXNG (Terminal 3)
 
 Open the settings file:
 
@@ -186,7 +194,7 @@ formats:
 
 ---
 
-### Category 9: Start SearXNG
+### Category 9: Start SearXNG (Terminal 3)
 
 **Terminal 1:**
 
@@ -208,7 +216,7 @@ If you see the SearXNG homepage, everything is working.
 
 ---
 
-### Category 10: Using LIRIS
+### Category 10: Using LIRIS (Terminal 1)
 
 **Terminal 3:**
 
@@ -250,12 +258,12 @@ source .venv/bin/activate
 
 Quick reference for starting all three terminals:
 
-#### Terminal 1: SearXNG
+#### Terminal 1: LIRIS
 
 ```bash
-cd ~/searxng
+cd <your-path-to-LIRIS>
 source .venv/bin/activate
-make run
+./liris search "kuznyechik"
 ```
 
 #### Terminal 2: qBittorrent-nox
@@ -264,12 +272,12 @@ make run
 qbittorrent-nox --webui-port=8080
 ```
 
-#### Terminal 3: LIRIS
+#### Terminal 3: SearXNG
 
 ```bash
-cd <your-path-to-LIRIS>
+cd ~/searxng
 source .venv/bin/activate
-./liris search "kuznyechik"
+make run
 ```
 
 ---
