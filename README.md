@@ -15,11 +15,33 @@ Liris is a CLI-first utility designed for efficient text-based web browsing via 
 
 You need some software installed on your device before you are ready to start setting up LIRIS.
 
-First of all, in case you are working on windows, you will need to install [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) as some of the requirements for LIRIS only work on Linux.
+What do you need before you start?
+Before you can install LIRIS, you need to install two things first. Do this in order.
 
-Second you will need a code editor, the one we used and tested and thus recommend is [Visual Studio Code](https://code.visualstudio.com/download).
+1. Visual Studio Code
+This is the code editor you will be working with.[Visual Studio Code](https://code.visualstudio.com/download). Install it like any other program.
 
-When both of those requirements are fullfilled you can continue with the installation proces:
+2. WSL (Windows Subsystem for Linux)
+LIRIS only works on Linux. WSL lets you run Linux inside Windows, without needing a separate computer or installation.
+How to install it:
+
+Search for PowerShell in the Windows search bar
+Right-click it and select Run as administrator
+Type the following command and press Enter:
+
+```bash
+wsl --install
+```
+Wait for it to finish and restart your computer
+After restarting, Ubuntu opens automatically and asks you to create a username and password. Pick something you will remember.
+
+3. Opening Ubuntu in VSCode
+
+Open Visual Studio Code
+Go to Terminal (in the top menu bar) → New Terminal
+Click the small arrow next to the + icon in the top right of the terminal panel
+
+Select Ubuntu (WSL)
 
 You need **3 terminals** running simultaneously in WSL:
 
@@ -27,6 +49,7 @@ You need **3 terminals** running simultaneously in WSL:
 - **Terminal 2** = qBittorrent-nox
 - **Terminal 3** = SearXNG
 
+When both of those requirements are fullfilled you can continue with the installation proces Step 1:
 ---
 
 ### Step 1: Clone or update Repository (Terminal 1)
